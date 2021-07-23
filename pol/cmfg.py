@@ -81,6 +81,7 @@ class profile2d:
 
         # Control sample (random centers)
         if self.config.p.control_sample:
+            print('( ! ) Randomizing center positions')
             N = glx.shape[0]
             r_l = [random()*360. for _ in range(N)]
             r_b = [random()*2.-1. for _ in range(N)]
@@ -101,7 +102,7 @@ class profile2d:
         glxsize = 10**glxsize      # !!!!!!!!!!!!!! VERIFICAR
         glxsize = glxsize*u.arcsec
         glxsize = glxsize.to(u.rad)
-        glx['glx_size_rad'] = glxsize
+        glx['glx_size_rad'] = glxsize.value
 
         # glx physical size [u.kpc]
         self.cosmo = FlatLambdaCDM(H0=67.8, Om0=0.308)
@@ -110,6 +111,7 @@ class profile2d:
         glx['v'] = z
         d_A = self.cosmo.angular_diameter_distance(z=glx['v'])
         r_kpc = (glxsize * d_A).to(u.kpc, u.dimensionless_angles())
+        r_kpc = r_kpc.value
         glx['glx_size_kpc'] = r_kpc
 
         # glx position angle
@@ -307,14 +309,27 @@ class profile2d:
                 filt4.append(f)
 
         if self.config.p.glx_physize_unit is not None:
-            smin = self.config.p.glx_physize_min
-            smax = self.config.p.glx_physize_max
-            for glxsize in self.centers['glx_size_kpc']:
-                f = glxsize > smin and glxsize < smax
-                filt4.append(f)
+             smin = self.config.p.glx_physize_min
+             smax = self.config.p.glx_physize_max
+             for glxsize in self.centers['glx_size_kpc']:
+                 f = glxsize > smin and glxsize < smax
+                 filt4.append(f)
 
         # filter all ----------------------------
-        filt = np.logical_and.reduce((filt1, filt2, filt3, filt4))
+        filt = []
+        for i in range(len(filt1)):
+            filt.append(filt1[i] and filt2[i] and filt3[i] and filt4[i])
+
+        #filt1 = np.array(filt1)
+        #filt2 = np.array(filt2)
+        #filt3 = np.array(filt3)
+        #filt4 = np.array(filt4)
+        #filt = np.logical_and([filt1, filt2, filt3, filt4])
+        #filt = np.logical_and.reduce((filt1, filt2, filt3, filt4))
+        # print(self.centers.shape)
+        # print(len(filt))
+
+        filt = np.array(filt)
         self.centers = self.centers[filt]
 
         # limit the number of centers

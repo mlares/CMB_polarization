@@ -25,7 +25,7 @@ class MidpointNormalize(colors.Normalize):
 
 
 
-with open('../out/POL01/data_POL01.pk', 'rb') as arch:
+with open('../out/POL03/data_POL03.pk', 'rb') as arch:
    results = pickle.load(arch)
 
 N = results[0][0].shape[0]
@@ -54,10 +54,12 @@ Zur = Zur / Ncen* 1.e6
 P = np.sqrt(Zq**2 + Zu**2)
 alpha = np.arctan2(Zu, Zq) / 2
 
+Pr = np.sqrt(Zqr**2 + Zur**2)
+alphar = np.arctan2(Zur, Zqr) / 2
 
 # ADDITIONAL DATA »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
-config = Parser('../set/POL01.ini')
+config = Parser('../set/POL03.ini')
 X = cmfg.profile2d(config)
 X.load_centers()
 X.select_subsample_centers()
@@ -65,12 +67,12 @@ X.select_subsample_centers()
 rmax = config.p.r_stop # rad
 rmax_deg = rmax.to(u.deg).value
 
+print('rmax_deg ------> ', rmax_deg)
 
 
 
 
-
-# RADIAL PROFILE
+# COMPUTE RADIAL PROFILE
 
 N = 120
 xr = np.linspace(-rmax_deg, rmax_deg, N)
@@ -85,7 +87,7 @@ neigh = NearestNeighbors(n_neighbors=6, radius=0.01)
 neigh.fit(G)
 
 # -------- 
-rr = np.linspace(0.05, 1.5, 200)
+rr = np.linspace(0.02, 2.8, 100)
 xpolar, ypolar = [], []
 for k, r in enumerate(rr):
     nn = 4 + k    
@@ -115,7 +117,7 @@ plt.close('all')
 fig = plt.figure(figsize=(7, 5))
 ax = fig.add_subplot()
 
-nr = MidpointNormalize(vmin=-5, vmax=5, midpoint=0.)
+nr = MidpointNormalize(vmin=-15, vmax=15, midpoint=0.)
 
 sc = ax.imshow(Zt, cmap='RdBu_r',
                extent=[-rmax_deg, rmax_deg, -rmax_deg, rmax_deg],
@@ -140,6 +142,7 @@ fig.savefig('Zt_POL03.png')
 
 
 
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 plt.close('all')
 fig = plt.figure(figsize=(7, 5))
@@ -163,8 +166,9 @@ ax.set_ylabel('y [deg]')
 #cb.formatter.set_powerlimits((-6, -6))
 #cb.update_ticks()
 plt.tight_layout()
-fig.savefig('Zq_POL02.png')   
+fig.savefig('Zq_POL03.png')   
 
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 plt.close('all')
 fig = plt.figure(figsize=(7, 5))
@@ -188,10 +192,11 @@ ax.set_ylabel('y [deg]')
 #cb.formatter.set_powerlimits((-6, -6))
 #cb.update_ticks()
 plt.tight_layout()
-fig.savefig('Zu_POL02.png')   
+fig.savefig('Zu_POL03.png')   
                              
 
 
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 plt.close('all')
 fig = plt.figure(figsize=(7, 5))
@@ -215,10 +220,11 @@ ax.set_ylabel('y [deg]')
 #cb.formatter.set_powerlimits((-6, -6))
 #cb.update_ticks()
 plt.tight_layout()
-fig.savefig('Zqr_POL02.png')   
+fig.savefig('Zqr_POL03.png')   
                            
 
  
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 plt.close('all')
 fig = plt.figure(figsize=(7, 5))
@@ -242,7 +248,7 @@ ax.set_ylabel('y [deg]')
 #cb.formatter.set_powerlimits((-6, -6))
 #cb.update_ticks()
 plt.tight_layout()
-fig.savefig('Zur_POL02.png')  
+fig.savefig('Zur_POL03.png')  
 
 
 
@@ -256,9 +262,10 @@ ax.axhline(0, linestyle='--', color='silver')
 ax.set_xlabel('radial distance [deg]')
 ax.set_ylabel(r'averaged temperature [$\times 10^6\,\mu$K]')
 plt.tight_layout()
-fig.savefig('Zt_POL02_radial.png')  
+fig.savefig('Zt_POL03_radial.png')  
 
 
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 
 
@@ -285,7 +292,89 @@ ax.set_ylabel('y [deg]')
 #cb.formatter.set_powerlimits((-6, -6))
 #cb.update_ticks()
 plt.tight_layout()
-fig.savefig('Zur_POL02.png')  
+fig.savefig('Zur_b_POL03.png')  
+
+
+
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+# P y angulo -----------------------------
+
+plt.close('all')
+fig = plt.figure(figsize=(7, 5))
+ax = fig.add_subplot()
+sc = ax.imshow(P, cmap='pink_r',
+               extent=[-rmax_deg, rmax_deg, -rmax_deg, rmax_deg])
+cb = plt.colorbar(sc, ax=ax, shrink=0.8, aspect=60)
+cb.set_label(r'$\times\; 10^{-6}\quad$ P')
+ax.set_xlabel('x [deg]')
+ax.set_ylabel('y [deg]')
+plt.tight_layout()
+fig.savefig('P_POL03.png')  
+
+
+
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+plt.close('all')
+fig = plt.figure(figsize=(7, 5))
+ax = fig.add_subplot()
+sc = ax.imshow(alpha, cmap='bwr',
+               extent=[-rmax_deg, rmax_deg, -rmax_deg, rmax_deg])
+cb = plt.colorbar(sc, ax=ax, shrink=0.8, aspect=60)
+cb.set_label(r'$\alpha$ [rad]')
+ax.set_xlabel('x [deg]')
+ax.set_ylabel('y [deg]')
+plt.tight_layout()
+fig.savefig('alpha_POL03.png')  
+
+
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+plt.close('all')
+fig = plt.figure(figsize=(7, 5))
+ax = fig.add_subplot()
+
+ax.hist(alpha)
+
+ax.set_xlabel('alpha [rad]')
+ax.set_ylabel('dN/d(alpha)')
+plt.tight_layout()
+fig.savefig('alpha_hist_POL03.png')  
+
+
+
+
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+# P y angulo -----------------------------
+
+plt.close('all')
+fig = plt.figure(figsize=(7, 5))
+ax = fig.add_subplot()
+sc = ax.imshow(Pr, cmap='pink_r',
+               extent=[-rmax_deg, rmax_deg, -rmax_deg, rmax_deg])
+cb = plt.colorbar(sc, ax=ax, shrink=0.8, aspect=60)
+cb.set_label(r'$\times\; 10^{-6}\quad$ P')
+ax.set_xlabel('x [deg]')
+ax.set_ylabel('y [deg]')
+plt.tight_layout()
+fig.savefig('P_r_POL03.png')  
+
+
+
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+plt.close('all')
+fig = plt.figure(figsize=(7, 5))
+ax = fig.add_subplot()
+sc = ax.imshow(alphar, cmap='bwr',
+               extent=[-rmax_deg, rmax_deg, -rmax_deg, rmax_deg])
+cb = plt.colorbar(sc, ax=ax, shrink=0.8, aspect=60)
+cb.set_label(r'$\alpha$ [rad]')
+ax.set_xlabel('x [deg]')
+ax.set_ylabel('y [deg]')
+plt.tight_layout()
+fig.savefig('alpha_r_POL03.png')  
+
+
+
+
 
 
 
@@ -306,12 +395,7 @@ for i in range(N*N):
         print(tx[i], hx[i], ty[i], hy[i])        
         
 
-
-
-
-
-
-
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 plt.close('all')
 fig = plt.figure(figsize=(7, 5))
@@ -332,8 +416,11 @@ ax2.set_xlabel('U')
 ax2.set_ylabel(r'dN/dU') 
 
 plt.tight_layout()
-fig.savefig('hists_POL02_radial.png')  
+fig.savefig('hists_POL03_radial.png')  
 
+
+
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 ql = []
 ul = []
@@ -346,13 +433,11 @@ for i, j in idxs:
             ql.append(Zq[i, j])
             ul.append(Zu[i, j])
 
-            P = np.sqrt(Zq[i,j]**2 + Zu[i,j]**2)
-            alpha = np.arctan2(Zu[i,j], Zq[i,j]) / 2
+            P_tmp = np.sqrt(Zq[i,j]**2 + Zu[i,j]**2)
+            alpha_tmp = np.arctan2(Zu[i,j], Zq[i,j]) / 2
 
-
-            pl.append(P)
-            al.append(alpha)
-
+            pl.append(P_tmp)
+            al.append(alpha_tmp)
 
 ql = np.array(ql)
 ul = np.array(ul)
@@ -377,16 +462,6 @@ ax.set_xlabel(r'Q  [$\times 10^6 \, \mu$K]', fontsize=16)
 ax.set_ylabel(r'U - Q  [$\times 10^6 \, \mu$K]', fontsize=16)
 
 plt.tight_layout()
-fig.savefig('qu_POL02.png')
-
-
-
-
-
-
-
-
-
-    
+fig.savefig('qu_POL03.png')
 
 

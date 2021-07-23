@@ -54,6 +54,8 @@ Zur = Zur / Ncen* 1.e6
 P = np.sqrt(Zq**2 + Zu**2)
 alpha = np.arctan2(Zu, Zq) / 2
 
+Pr = np.sqrt(Zqr**2 + Zur**2)
+alphar = np.arctan2(Zur, Zqr) / 2
 
 # ADDITIONAL DATA »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
@@ -70,7 +72,7 @@ print('rmax_deg ------> ', rmax_deg)
 
 
 
-# RADIAL PROFILE
+# COMPUTE RADIAL PROFILE
 
 N = 250
 xr = np.linspace(-rmax_deg, rmax_deg, N)
@@ -140,6 +142,7 @@ fig.savefig('Zt_POL05.png')
 
 
 
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 plt.close('all')
 fig = plt.figure(figsize=(7, 5))
@@ -165,6 +168,7 @@ ax.set_ylabel('y [deg]')
 plt.tight_layout()
 fig.savefig('Zq_POL05.png')   
 
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 plt.close('all')
 fig = plt.figure(figsize=(7, 5))
@@ -192,6 +196,7 @@ fig.savefig('Zu_POL05.png')
                              
 
 
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 plt.close('all')
 fig = plt.figure(figsize=(7, 5))
@@ -219,6 +224,7 @@ fig.savefig('Zqr_POL05.png')
                            
 
  
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 plt.close('all')
 fig = plt.figure(figsize=(7, 5))
@@ -259,6 +265,7 @@ plt.tight_layout()
 fig.savefig('Zt_POL05_radial.png')  
 
 
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 
 
@@ -289,6 +296,7 @@ fig.savefig('Zur_b_POL05.png')
 
 
 
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 # P y angulo -----------------------------
 
 plt.close('all')
@@ -305,6 +313,7 @@ fig.savefig('P_POL05.png')
 
 
 
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 plt.close('all')
 fig = plt.figure(figsize=(7, 5))
 ax = fig.add_subplot()
@@ -318,6 +327,7 @@ plt.tight_layout()
 fig.savefig('alpha_POL05.png')  
 
 
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 plt.close('all')
 fig = plt.figure(figsize=(7, 5))
 ax = fig.add_subplot()
@@ -332,10 +342,35 @@ fig.savefig('alpha_hist_POL05.png')
 
 
 
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+# P y angulo -----------------------------
+
+plt.close('all')
+fig = plt.figure(figsize=(7, 5))
+ax = fig.add_subplot()
+sc = ax.imshow(Pr, cmap='pink_r',
+               extent=[-rmax_deg, rmax_deg, -rmax_deg, rmax_deg])
+cb = plt.colorbar(sc, ax=ax, shrink=0.8, aspect=60)
+cb.set_label(r'$\times\; 10^{-6}\quad$ P')
+ax.set_xlabel('x [deg]')
+ax.set_ylabel('y [deg]')
+plt.tight_layout()
+fig.savefig('P_r_POL05.png')  
 
 
 
-
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+plt.close('all')
+fig = plt.figure(figsize=(7, 5))
+ax = fig.add_subplot()
+sc = ax.imshow(alphar, cmap='bwr',
+               extent=[-rmax_deg, rmax_deg, -rmax_deg, rmax_deg])
+cb = plt.colorbar(sc, ax=ax, shrink=0.8, aspect=60)
+cb.set_label(r'$\alpha$ [rad]')
+ax.set_xlabel('x [deg]')
+ax.set_ylabel('y [deg]')
+plt.tight_layout()
+fig.savefig('alpha_r_POL05.png')  
 
 
 
@@ -360,6 +395,7 @@ for i in range(N*N):
         print(tx[i], hx[i], ty[i], hy[i])        
         
 
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 plt.close('all')
 fig = plt.figure(figsize=(7, 5))
@@ -382,6 +418,9 @@ ax2.set_ylabel(r'dN/dU')
 plt.tight_layout()
 fig.savefig('hists_POL05_radial.png')  
 
+
+
+# PLOTS »»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 ql = []
 ul = []

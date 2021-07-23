@@ -20,20 +20,33 @@ from sklearn.neighbors import NearestNeighbors
 
 import pickle
 
-
 import multiprocessing
 from joblib import Parallel, delayed
+import cmfg
 
 
+if len(argv) > 1:
+    config = Parser(argv[1])
+else:
+    config = Parser()   
 
-#def f(centers, idxs, G):
+# CENTERS ----------------------------------------------
+
+# filename = pxs.check_file(sys.argv)
+# config = ConfigParser()
+# config.read(filename)
+
+#config = Parser('../set/POL03.ini')
+X = cmfg.profile2d(config)
+X.load_centers()
+X.select_subsample_centers()
 
 def f(x, N, rmax, rmax_deg, xr, yr, idxs, G):
     
     center = x[1]
     neigh = NearestNeighbors(n_neighbors=3, radius=0.01)
 
-    print(center['ID'])
+    #print(center['ID'])
 
     Zt = np.zeros((N,N))
     Zq = np.zeros((N,N))
@@ -49,12 +62,14 @@ def f(x, N, rmax, rmax_deg, xr, yr, idxs, G):
     rotate_pa = R.from_euler('zyz', [-phi, -theta, pa])
 
     s = phi
+    print(vector, rmax.value)
 
-    listpixs = hp.query_disc(nside, vector, rmax,
+    listpixs = hp.query_disc(nside, vector, rmax.value,
                              inclusive=False, fact=4, nest=False) 
 
     dists, thetas, tt, qq, uu, qr = [], [], [], [], [], []
 
+    print('entering listpixs')
     for ipix in listpixs:
         v = hp.pix2vec(nside, ipix)
         w = rotate_pa.apply(v)
@@ -68,6 +83,7 @@ def f(x, N, rmax, rmax_deg, xr, yr, idxs, G):
         tt.append(T[ipix])
         qq.append(Q[ipix])
         uu.append(U[ipix])
+    print('quiting listpixs')
 
     thetas = np.array(thetas)
     dists = np.array(dists)
@@ -75,18 +91,22 @@ def f(x, N, rmax, rmax_deg, xr, yr, idxs, G):
     qq = np.array(qq)
     uu = np.array(uu)
 
+    print('control 1')
     # calcular el ángulo psi
     psi2 = 2*thetas
     qr = -qq*np.cos(psi2) - uu*np.sin(psi2)
     ur =  qq*np.sin(psi2) - uu*np.cos(psi2)
+    print('control 2')
 
     x = dists*np.cos(thetas)*180/pi
     y = dists*np.sin(thetas)*180/pi
     neigh.fit(np.column_stack([x, y]))
 
+    print('neigh fit')
+
     for i, ix in zip(idxs, G):
         rr = np.linalg.norm(ix)
-        if(rr<rmax_deg):
+        if(rr<rmax_deg.value):
             dist, ind = neigh.kneighbors([ix], 3, return_distance=True)
             dd = np.exp(-dist*25)
             dsts = dd.sum()
@@ -103,19 +123,7 @@ def f(x, N, rmax, rmax_deg, xr, yr, idxs, G):
             Zur[i[0], i[1]] = Zur[i[0], i[1]] + val
  
     res = [Zt, Zq, Zu, Zqr, Zur]
-
     return res
-
-
-
-# CENTERS ----------------------------------------------
-
-config = Parser('../set/POL02.ini')
-X = cmfg.profile2d(config)
-X.load_centers()
-X.select_subsample_centers()
-
-
 
 # CMB MAP --------------------------------------------
 
@@ -126,18 +134,11 @@ T = hp.read_map(filedata, field=0, h=False, dtype=float)
 Q = hp.read_map(filedata, field=1, h=False, dtype=float)
 U = hp.read_map(filedata, field=2, h=False, dtype=float)
  
-# (from cmfg.profile2d.load_centers)
-phi_healpix = X.centers['l']*np.pi/180.
-theta_healpix = (90. - X.centers['b'])*np.pi/180.
-X.centers['phi'] = phi_healpix
-X.centers['theta'] = theta_healpix
-X.centers['vec'] = hp.ang2vec(theta_healpix, phi_healpix).tolist()
-
-N = 120
+N = 250
 rmax = config.p.r_stop # rad
 rmax_deg = rmax*180/pi
-xr = np.linspace(-rmax_deg, rmax_deg, N)
-yr = np.linspace(-rmax_deg, rmax_deg, N)
+xr = np.linspace(-rmax_deg, rmax_deg, N).value
+yr = np.linspace(-rmax_deg, rmax_deg, N).value
 
 idxs = itertools.product(range(N), range(N))
 idxs = list(idxs)
@@ -146,22 +147,22 @@ G = list(G)
 
 Ncen = X.centers.shape[0]
 
+print(Ncen)
+
 run = (delayed(f)(x, N, rmax, rmax_deg, xr, yr, idxs, G) for x in X.centers.head(Ncen).iterrows()) 
-results = Parallel(n_jobs=4)(run)
+results = Parallel(n_jobs=40)(run)
 
-#    Zt = Zt/Ncen
-#    Zq = Zq/Ncen
-#    Zu = Zu/Ncen
-#    Zqr = Zqr/Ncen
-#    Zur = Zur/Ncen
-
-with open('data.pk', 'wb') as arch:
+fout = f'{config.filenames.dir_output}{config.filenames.experiment_id}/data_{config.filenames.experiment_id}.pk'
+print('escribiendo datos...')
+print(fout)
+ 
+with open(fout, 'wb') as arch:
    pickle.dump(results, arch)
+ 
+ 
 
-
-
-#with open('../../data/glxs_zetas.pk', 'wb') as f:
-#   pickle.dump([Zt, Zq, Zu, Zqr, Zur], f)
-
-#P = np.sqrt(Zq**2 + Zu**2)
-#alpha = np.arctan(Zu, Zq) / 2
+#    #with open('../../data/glxs_zetas.pk', 'wb') as f:
+#    #   pickle.dump([Zt, Zq, Zu, Zqr, Zur], f)
+#    
+#    #P = np.sqrt(Zq**2 + Zu**2)
+#    #alpha = np.arctan(Zu, Zq) / 2

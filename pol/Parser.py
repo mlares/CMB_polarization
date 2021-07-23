@@ -327,7 +327,7 @@ class Parser(ConfigParser):
         norm_to = False
         if r_units_str == 'rad':
             r_units = u.rad
-        if r_units_str == 'arcmin':
+        elif r_units_str == 'arcmin':
             r_units = u.arcmin
         elif r_units_str == 'arcsec':
             r_units = u.arcsec
@@ -706,12 +706,11 @@ class Parser(ConfigParser):
 
         # plots directory
         if not path.isdir(self.filenames.dir_plots):
-            print(f"Directory {self.p.dir_plots} does not exist")
-
+            print(f"Directory {self.filenames.dir_plots} does not exist")
             try:
-                makedirs(self.p.dir_plots)
+                makedirs(self.filenames.dir_plots)
                 if self.p.verbose:
-                    print("Directory ", self.p.dir_plots,  " Created ")
+                    print("Directory ", self.filenames.dir_plots,  " Created ")
             except FileExistsError:
                 # directory already exists
                 pass

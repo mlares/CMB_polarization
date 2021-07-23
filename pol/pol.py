@@ -25,40 +25,40 @@ from astropy.coordinates import SkyCoord
 
 # Galaxias
 
-# filename = '../data/2mrs_1175_done.dat'
-# 
-# with open(filename, 'r') as f:
-#     centers = pd.read_csv(f, skiprows=9, delim_whitespace=True)
-# 
-# # drop out unsed columns
-# 
-# cols_out = ['RAdeg', 'DECdeg', 'k_c', 'h_c', 'j_c', 'k_tc', 'h_tc',
-#             'j_tc', 'e_k', 'e_h', 'e_j', 'e_kt', 'e_ht', 'e_jt', 'e_bv']
-# centers = centers.drop(columns=cols_out)
+filename = '../../data/2mrs_1175_done.dat'
+
+with open(filename, 'r') as f:
+    centers = pd.read_csv(f, skiprows=9, delim_whitespace=True)
+
+# drop out unsed columns
+
+cols_out = ['k_c', 'h_c', 'j_c', 'k_tc', 'h_tc',
+            'j_tc', 'e_k', 'e_h', 'e_j', 'e_kt', 'e_ht', 'e_jt', 'e_bv']
+centers = centers.drop(columns=cols_out)
 
 
 # Clusters
 
-filename = '../data/GMBCG_SDSS_DR7_PUB_ASCII.txt'
-
-with open(filename, 'r') as f:
-    centers = pd.read_csv(f, skiprows=5)
-
-cols_out = ["objid", "photoz", "photoz_err", "gmr_err","rmi","rmi_err",
-            "dered_u","dered_g","dered_r","dered_i","dered_z","u_Err",
-            "g_Err","r_Err","i_Err","z_Err","weightOK","name"]
-centers = centers.drop(columns=cols_out)
-
-l = []
-b = []
-
-for index, row in centers.iterrows():
-    c_icrs = SkyCoord(ra=row.ra*u.degree, dec=row.dec*u.degree, frame='icrs')
-    l.append(c_icrs.galactic.l.value)
-    b.append(c_icrs.galactic.b.value)
-
-centers['l'] = np.array(l)
-centers['b'] = np.array(b)
+# filename = '../../data/GMBCG_SDSS_DR7_PUB_ASCII.txt'
+# 
+# with open(filename, 'r') as f:
+#     centers = pd.read_csv(f, skiprows=5)
+# 
+# cols_out = ["objid", "photoz", "photoz_err", "gmr_err","rmi","rmi_err",
+#             "dered_u","dered_g","dered_r","dered_i","dered_z","u_Err",
+#             "g_Err","r_Err","i_Err","z_Err","weightOK","name"]
+# centers = centers.drop(columns=cols_out)
+# 
+# l = []
+# b = []
+# 
+# for index, row in centers.iterrows():
+#     c_icrs = SkyCoord(ra=row.ra*u.degree, dec=row.dec*u.degree, frame='icrs')
+#     l.append(c_icrs.galactic.l.value)
+#     b.append(c_icrs.galactic.b.value)
+# 
+# centers['l'] = np.array(l)
+# centers['b'] = np.array(b)
 
 
 
@@ -66,7 +66,7 @@ centers['b'] = np.array(b)
 # CMB MAP --------------------------------------------
 
 nside = 2048
-filedata = '../data/COM_CMB_IQU-smica_2048_R3.00_full.fits'
+filedata = '../../data/COM_CMB_IQU-smica_2048_R3.00_full.fits'
 
 T = hp.read_map(filedata, field=0, h=False, dtype=float)
 Q = hp.read_map(filedata, field=1, h=False, dtype=float)
@@ -87,7 +87,7 @@ centers['vec'] = hp.ang2vec(theta_healpix, phi_healpix).tolist()
 # compute rotation matrix
 phi = float(centers.phi[1])
 theta = float(centers.theta[1])
-pa = 0.  # por ahora no uso el ángulo de posición
+pa = 0.  # no rotar
 vector = hp.ang2vec(centers.theta[1], centers.phi[1])
 
 rotate_pa = R.from_euler('zyz', [-phi, -theta, pa])
