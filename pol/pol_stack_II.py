@@ -23,6 +23,9 @@ import pickle
 import multiprocessing
 from joblib import Parallel, delayed
 import cmfg
+import time
+
+start_time = time.time()
 
 
 # LOAD config
@@ -163,3 +166,5 @@ fout = f'{config.filenames.dir_output}{config.filenames.experiment_id}/data_{con
  
 with open(fout, 'wb') as arch:
    pickle.dump(results, arch)
+
+print(f'All done, elapsed time: {(time.time()-start_time)/60: 12.2f} minutes')
