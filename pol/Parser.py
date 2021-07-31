@@ -453,6 +453,28 @@ class Parser(ConfigParser):
             ellipt_max = 1.
 
         try:
+            glx_q_density_min = float(self['run']['glx_q_density_min'])
+        except KeyError:
+            glx_q_density_min = 0.
+
+        try:
+            glx_q_density_max = float(self['run']['glx_q_density_max'])
+        except KeyError:
+            glx_q_density_max = 0.
+
+        try:
+            density_type = self['run']['density_type']
+            if density_type.lower() in 'none':
+                density_type = None
+            elif '2d' in density_type.lower():
+                density_type = '2d'
+            elif '3d' in density_type.lower():
+                density_type = '3d'
+        except KeyError:
+            density_type = ''
+
+
+        try:
             r_avg_cuts = self['run']['r_avg_cuts'].split(' ')
             if is_number(r_avg_cuts[0]):
                 r_avg_cuts = [int(i) for i in r_avg_cuts]
@@ -618,6 +640,9 @@ class Parser(ConfigParser):
                  'glx_physize_min',
                  'glx_physize_max',
                  'glx_physize_unit',
+                 'density_type',
+                 'glx_q_density_min',
+                 'glx_q_density_max',
                  'max_centers',
                  'verbose',
                  'run_parallel',
@@ -660,6 +685,9 @@ class Parser(ConfigParser):
                      glx_physize_min,
                      glx_physize_max,
                      glx_physize_unit,
+                     density_type,
+                     glx_q_density_min,
+                     glx_q_density_max,
                      max_centers,
                      verbose,
                      run_parallel,
@@ -743,6 +771,19 @@ class Parser(ConfigParser):
                 ans = True
             if not ans:
                 print("Please fix filename or experiment index and try again.")
+                exit()
+
+        if self.p.density_type is not None:
+            dmin = (self.p.glx_q_density_min >= 0) & \
+                   (self.p.glx_q_density_min <= 1)
+            dmax = (self.p.glx_q_density_max >= 0) & \
+                   (self.p.glx_q_density_max <= 1)
+            dmm =  self.p.glx_q_density_min < self.p.glx_q_density_max
+            if not (dmin & dmax & dmm):
+                print('Error: check density min/max parameters')
+                print(self.p.glx_q_density_min)
+                print(self.p.glx_q_density_max)
+                print(dmin, dmax, dmm)
                 exit()
 
 

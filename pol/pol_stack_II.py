@@ -41,44 +41,6 @@ X.load_centers()
 X.select_subsample_centers()
 
 
-# Additional filter to galaxy sample
-
-# Con distancia 3D
-
-N = X.centers.shape[0]
-from astropy.cosmology import WMAP9 as cosmo
-R = cosmo.comoving_distance(X.centers.v)
-ra_rad = X.centers.RAdeg*np.pi/180.
-dec_rad = X.centers.DECdeg*np.pi/180.
-x = R.value*np.cos(dec_rad)*np.cos(ra_rad)
-y = R.value*np.cos(dec_rad)*np.sin(ra_rad)
-z = R.value*np.sin(dec_rad)
-
-neigh = NearestNeighbors(n_neighbors=6, radius=0.03)
-neigh.fit(np.column_stack([x, y, z]))
-
-s5 = []
-for i in range(N):
-    r = [x.iloc[i], y.iloc[i], z.iloc[i]]
-    dist, ind = neigh.kneighbors([r], return_distance=True)
-    s5.append(dist[0][5])
- 
-# Con distancia proyectada (+/- 500km/s)
-
-df = X.centers[['RAdeg', 'DECdeg', 'v']]
-N = df.shape[0]
-rangovel = 500/300000  # (velocidad para +/-500 km/s)
-neigh = NearestNeighbors(n_neighbors=6, radius=0.03)
-
-s5 = []
-for i in tqdm.tqdm(range(N)):
-    V = df.iloc[i]
-    D = df[df.v.between(V.v-rangovel, V.v+rangovel)]
-    neigh.fit(np.column_stack([D.RAdeg.values, D.DECdeg.values]))
-    dist, ind = neigh.kneighbors([[V.RAdeg, V.DECdeg]], return_distance=True)
-    s5.append(dist[0][5])
-
-
 
 
 # CMB MAP

@@ -1,6 +1,7 @@
 from PixelSky import SkyMap
 from astropy.cosmology import FlatLambdaCDM
 from scipy.spatial.transform import Rotation as R
+from sklearn.neighbors import NearestNeighbors 
 
 import pandas as pd
 import healpy as hp
@@ -332,10 +333,71 @@ class profile2d:
         filt = np.array(filt)
         self.centers = self.centers[filt]
 
+        # filter on: galaxy local density ----------------
+
+
+        # ################################################################
+        # Additional filter to galaxy sample
+
+        # Con distancia 3D
+        if self.config.p.density_type=='3d':
+
+            N = self.centers.shape[0]
+            from astropy.cosmology import WMAP9 as cosmo
+            R = cosmo.comoving_distance(self.centers.v)
+            ra_rad = self.centers.RAdeg*np.pi/180.
+            dec_rad = self.centers.DECdeg*np.pi/180.
+            x = R.value*np.cos(dec_rad)*np.cos(ra_rad)
+            y = R.value*np.cos(dec_rad)*np.sin(ra_rad)
+            z = R.value*np.sin(dec_rad)
+
+            neigh = NearestNeighbors(n_neighbors=6, radius=0.03)
+            neigh.fit(np.column_stack([x, y, z]))
+
+            s5 = []
+            for i in range(N):
+                r = [x.iloc[i], y.iloc[i], z.iloc[i]]
+                dist, ind = neigh.kneighbors([r], return_distance=True)
+                s5.append(dist[0][5])
+
+            cond1 = s5 > np.quantile(s5, self.config.p.glx_q_density_min)
+            cond2 = s5 < np.quantile(s5, self.config.p.glx_q_density_max)
+            filt = np.logical_and(cond1, cond2)
+            self.centers = self.centers[filt]
+             
+        elif self.config.p.density_type=='2d':
+        # Con distancia proyectada (+/- 500km/s)
+
+            df = self.centers[['RAdeg', 'DECdeg', 'v']]
+            N = df.shape[0]
+            rangovel = 500/300000  # (velocidad para +/-500 km/s)
+            neigh = NearestNeighbors(n_neighbors=6, radius=0.03)
+
+            s5 = []
+            for i in range(N):
+                V = df.iloc[i]
+                D = df[df.v.between(V.v-rangovel, V.v+rangovel)]
+                neigh.fit(np.column_stack([D.RAdeg.values, D.DECdeg.values]))
+                dist, ind = neigh.kneighbors([[V.RAdeg, V.DECdeg]], 
+                                             return_distance=True)
+                s5.append(dist[0][5])
+
+            cond1 = s5 > np.quantile(s5, self.config.p.glx_q_density_min)
+            cond2 = s5 < np.quantile(s5, self.config.p.glx_q_density_max)
+            filt = np.logical_and(cond1, cond2)
+            self.centers = self.centers[filt]
+
+        elif self.config.p.density_type is None:
+            pass
+        else:
+            print('WARNING: for galaxy density use either 2d, 3d or None')
+            exit()
+
+        # ################################################################
+
         # limit the number of centers
         if self.config.p.max_centers > 0:
             self.centers = self.centers[:self.config.p.max_centers]
-
         return None
 
     def run_single(self, center):
